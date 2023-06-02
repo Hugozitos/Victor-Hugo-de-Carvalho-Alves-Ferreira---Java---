@@ -1,0 +1,135 @@
+package com.mycompany.projetosimone;
+
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.ResultSet;
+import java.util.Scanner;
+
+public class Application {
+    private final Scanner scanner = new Scanner(System.in);
+    private final Connection connection;
+    private final Statement statement;
+    
+    public Application(Connection connection, Statement statement) {
+        this.connection = connection;
+        this.statement = statement;
+    }
+    
+    public void clearScreen() {
+        try {
+            if (System.getProperty("os.name").contains("Windows")) {
+                new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+            } else {
+                Runtime.getRuntime().exec("clear");
+            }
+        } catch (IOException | InterruptedException e) {
+            System.err.format("erro ao limpar a tela: %s", e.getMessage());
+        }
+    }
+    
+    public void displayMenu() {
+        int choice;
+        clearScreen();
+        while (true) {
+            System.out.println("escolha");
+            System.out.println("1 criar tabela.");
+            System.out.println("2 inserir dados.");
+            System.out.println("3 ler.");
+            System.out.println("4 atualizar.");
+            System.out.println("5 excluir dados.");
+            System.out.print(": ");
+            choice = scanner.nextInt();
+            clearScreen();
+            switch (choice) {
+                case 1:
+                    createTable();
+                    break;
+                case 2:
+                    insertData();
+                    break;
+                case 3:
+                    readData();
+                    break;
+                case 4:
+                    updateData();
+                    break;
+                case 5:
+                    deleteData();
+                    break;
+                default:
+                    System.out.println("erro");
+                    break;
+            }
+        }
+    }
+    
+    public void createTable() {
+        try {
+            System.out.print("nome da tabela: ");
+            String tableName = scanner.next();
+            String createTableSQL = "CREATE TABLE " + tableName + " (id INT PRIMARY KEY, name VARCHAR(70));";
+            System.out.println("executando : " + createTableSQL);
+            statement.executeUpdate(createTableSQL);
+            System.out.println("criado com sucesso.");
+        } catch (SQLException e) {
+            System.err.format("erro SQL State: %s\n%s", e.getSQLState(), e.getMessage());
+        }
+    }
+    
+    public void insertData() {
+        try {
+            System.out.print("ID: ");
+            int id = scanner.nextInt();
+            System.out.print("nome: ");
+            String name = scanner.next();
+            String insertDataSQL = "INSERT INTO pessoa (id, name) VALUES (" + id + ", \'" + name + "\');";
+            System.out.println("executando: " + insertDataSQL);
+            statement.executeUpdate(insertDataSQL);
+            System.out.println("dados inseridos com sucesso.");
+        } catch (SQLException e) {
+            System.err.format("erro SQL State: %s\n%s", e.getSQLState(), e.getMessage());
+        }
+    }
+    
+    public void readData() {
+        ResultSet resultSet;
+        try {
+            String selectDataSQL = "SELECT * FROM pessoa";
+            resultSet = statement.executeQuery(selectDataSQL);
+            while (resultSet.next()) {
+                System.out.println("ID: " + resultSet.getInt(1));
+                System.out.println("nome: " + resultSet.getString(2));
+            }
+            resultSet.close();
+            System.out.println("dados lidos com sucesso.");
+        } catch (SQLException e) {
+            System.err.format("erro SQL State: %s\n%s", e.getSQLState(), e.getMessage());
+        }
+    }
+    
+    public void updateData() {
+        try {
+            System.out.print("novo nome: ");
+            String name = scanner.next();
+            String updateDataSQL = "UPDATE pessoa SET name = \'" + name + "\';";
+            System.out.println("executando: " + updateDataSQL);
+            statement.executeUpdate(updateDataSQL);
+            System.out.println("atualizado com sucesso.");
+        } catch (SQLException e) {
+            System.err.format("erro SQL State: %s\n%s", e.getSQLState(), e.getMessage());
+        }
+    }
+    
+    public void deleteData() {
+        try {
+            String deleteDataSQL = "DELETE FROM pessoa;";
+            System.out.println("executando: " + deleteDataSQL);
+            statement.executeUpdate(deleteDataSQL);
+            System.out.println("dados excluídos com sucesso.");
+        } catch (SQLException e) {
+            System.err.format("erro SQL State: %s\n%s", e.getSQLState(), e.getMessage());
+        }
+    }
+}
